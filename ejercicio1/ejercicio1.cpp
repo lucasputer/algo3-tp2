@@ -1,8 +1,5 @@
-#include <functional>
-#include <algorithm>
 #include <vector>
 #include <iostream>
-#include <time.h>
 using namespace std;
 
 // Structs y Typedefs
