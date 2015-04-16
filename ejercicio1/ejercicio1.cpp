@@ -34,19 +34,19 @@ struct costoEtapa {
 
 struct solucion {
 
-    solucion(int n) : tiempo(0), vehiculos(n, BMX) {}
+    solucion() : tiempo(0) {}
 
     int tiempo;
-    vector<int> vehiculos;
 };
 
 typedef vector<solucion> Vec;
 typedef vector<Vec> Tabla;
 
 // Prototipado de funciones
-int tiempo_total(vector<int> s, vector<costoEtapa> costos);
-void mostrar_solucion(solucion s, vector<costoEtapa> costos);
-solucion agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos);
+int tiempo_total(vector<pair <int,int> > &vehiculos, int fila, int columna, vector<costoEtapa> costos);
+void mostrar_solucion(solucion s, vector< pair<int,int> > &vehiculos, int fila, int columna, vector<costoEtapa> costos);
+solucion agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos, vector< pair<int,int> > &vehiculos, int fila, int columna);
+solucion sim_agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos, vector< pair<int,int> > &vehiculos, int fila, int columna);
 
 // Implementacion. Contiene el cargado de input más la resolución del ejercicio.
 int main() {
@@ -72,20 +72,25 @@ int main() {
     }
 
     // creo la tabla de soluciones parciales
-    Tabla matriz(km+1, Vec(kb+1, solucion(n)));
+    Tabla matriz(km+1, Vec(kb+1, solucion()));
+    vector< pair<int,int> > vehiculos_fila(n, pair<int,int>(BMX, 0));
+
     // La solucion (0,0) ya tiene inicializada todas las etapas usando BMX
     // Calculamos la sumatoria de los tiempos para la solucion inicial
-    matriz[0][0].tiempo = tiempo_total(matriz[0][0].vehiculos, costos);
+    matriz[0][0].tiempo = tiempo_total(vehiculos_fila, 0, 0, costos);
     //mostrar_solucion(matriz[0][0], costos);
+    //mostrar_solucion(matriz[0][0], vehiculos_fila, 0, 0, costos);
 
     // calculo la primera fila
     for(int i = 1; i <= kb; i++) {
-        matriz[0][i] = agregar_vehiculo(BUGGY, matriz[0][i-1], costos);
+        matriz[0][i] = agregar_vehiculo(BUGGY, matriz[0][i-1], costos, vehiculos_fila, 0, i);
     }
+    //mostrar_solucion(matriz[0][1], vehiculos_fila, 0, 1, costos);
+
     // calculo la primera columna
-    for(int i = 1; i <= km; i++) {
+    /*for(int i = 1; i <= km; i++) {
         matriz[i][0] = agregar_vehiculo(MOTO, matriz[i-1][0], costos);
-    }
+    }*/
 
     /*mostrar_solucion(matriz[0][1], costos);
     mostrar_solucion(matriz[1][0], costos);
@@ -93,30 +98,55 @@ int main() {
 
     // calculo todas las celdas internas de la tabla
     for(int i = 1; i <= km; i++) {
-        for(int j = 1; j <= kb; j++) {
-            solucion aux_moto = agregar_vehiculo(MOTO, matriz[i-1][j], costos);
-            solucion aux_buggy = agregar_vehiculo(BUGGY, matriz[i][j-1], costos);
-            if (aux_moto.tiempo < aux_buggy.tiempo) {
-                matriz[i][j] = aux_moto;
+        for(int j = 0; j <= kb; j++) {
+            if (j == 0) {
+                matriz[i][0] = agregar_vehiculo(MOTO, matriz[i-1][0], costos, vehiculos_fila, i, 0);
             } else {
-                matriz[i][j] = aux_buggy;
+                solucion aux_moto = sim_agregar_vehiculo(MOTO, matriz[i-1][j], costos, vehiculos_fila, i, j);
+                solucion aux_buggy = sim_agregar_vehiculo(BUGGY, matriz[i][j-1], costos, vehiculos_fila, i, j);
+                if (aux_moto.tiempo < aux_buggy.tiempo) {
+                    matriz[i][j] = aux_moto;
+                    agregar_vehiculo(MOTO, matriz[i-1][j], costos, vehiculos_fila, i, j);
+                } else {
+                    matriz[i][j] = aux_buggy;
+                    agregar_vehiculo(BUGGY, matriz[i][j-1], costos, vehiculos_fila, i, j);
+                }
             }
+            cout << i << j << endl;
+            mostrar_solucion(matriz[i][j], vehiculos_fila, i, j, costos);
+            cout << endl;
         }
     }
 
-    mostrar_solucion(matriz[km][kb], costos);
+    //mostrar_solucion(matriz[km][kb], vehiculos_fila, km, kb, costos);
 }
 
 // Dado un vehiculo, una solucion de partida y los costos de los vehiculos para cada etapa
 // , agrega ese nuevo vehiculo a la solucion y la devuelve
-solucion agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos) {
+solucion agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos, vector< pair<int,int> > &vehiculos, int fila, int columna) {
     int n = costos.size();
 
     int min_etapa = -1;
     int min_tiempo = -1;
 
     for(int i = 0; i < n; i++) {
-        int tiempo = s.tiempo - costos[i].costo(s.vehiculos[i]) +  costos[i].costo(vehiculo);
+        int tiempo = 0;
+        if (vehiculos[i].first == MOTO) {
+            if (vehiculos[i].second < fila || (vehiculo == BUGGY && vehiculos[i].second <= fila)) {
+                tiempo = s.tiempo - costos[i].costo(MOTO) +  costos[i].costo(vehiculo);
+            } else {
+                tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+            }
+        } else if (vehiculos[i].first == BUGGY) {
+            if (vehiculos[i].second < columna || (vehiculo == MOTO && vehiculos[i].second <= columna)) {
+                tiempo = s.tiempo - costos[i].costo(BUGGY) +  costos[i].costo(vehiculo);
+            } else {
+                tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+            }
+        } else {
+            tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+        }
+
         if (tiempo < min_tiempo || min_tiempo == -1) {
             min_tiempo = tiempo;
             min_etapa = i;
@@ -124,34 +154,97 @@ solucion agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos) {
     }
 
     solucion nueva = s;
-    nueva.vehiculos[min_etapa] = vehiculo;
+    vehiculos[min_etapa].first = vehiculo;
+    if (vehiculo == MOTO) {
+        vehiculos[min_etapa].second = fila;
+    } else {
+        vehiculos[min_etapa].second = columna;
+    }
     nueva.tiempo = min_tiempo;
     return nueva;
 }
 
+solucion sim_agregar_vehiculo(int vehiculo, solucion s, vector<costoEtapa> costos, vector< pair<int,int> > &vehiculos, int fila, int columna) {
+    int n = costos.size();
+
+    int min_etapa = -1;
+    int min_tiempo = -1;
+
+    for(int i = 0; i < n; i++) {
+        int tiempo = 0;
+        if (vehiculos[i].first == MOTO) {
+            if (vehiculos[i].second < fila || (vehiculo == BUGGY && vehiculos[i].second <= fila)) {
+                tiempo = s.tiempo - costos[i].costo(MOTO) +  costos[i].costo(vehiculo);
+            } else {
+                tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+            }
+        } else if (vehiculos[i].first == BUGGY) {
+            if (vehiculos[i].second < columna || (vehiculo == MOTO && vehiculos[i].second <= columna)) {
+                tiempo = s.tiempo - costos[i].costo(BUGGY) +  costos[i].costo(vehiculo);
+            } else {
+                tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+            }
+        } else {
+            tiempo = s.tiempo - costos[i].costo(BMX) +  costos[i].costo(vehiculo);
+        }
+
+        if (tiempo < min_tiempo || min_tiempo == -1) {
+            min_tiempo = tiempo;
+            min_etapa = i;
+        }
+    }
+
+    solucion nueva = s;
+    nueva.tiempo = min_tiempo;
+    return nueva;
+}
 // Dado un vector de vehiculos y los costos de los vehiculos para cada etapa
 // devuelve el costo de realizar el rally.
-int tiempo_total(vector<int> s, vector<costoEtapa> costos) {
-    int n = s.size();
+int tiempo_total(vector< pair<int,int> > &vehiculos, int fila, int columna, vector<costoEtapa> costos) {
+    int n = costos.size();
     int tiempo = 0;
     for(int i = 0; i < n; i++) {
-        tiempo = tiempo + costos[i].costo(s[i]);
+        int aux = 0;
+        if (vehiculos[i].first == MOTO) {
+            if (vehiculos[i].second <= fila) {
+                aux =  costos[i].costo(MOTO);
+            } else {
+                aux = costos[i].costo(BMX);
+            }
+        } else if (vehiculos[i].first == BUGGY) {
+            if (vehiculos[i].second <= columna) {
+                aux = costos[i].costo(BUGGY);
+            } else {
+                aux = costos[i].costo(BMX);
+            }
+        } else {
+            aux = costos[i].costo(BMX);
+        }
+       tiempo = tiempo + aux;
     }
     return tiempo;
 }
 
 // Dada una solucion y los costos de los vehiculos para cada etapa
 // muestra por stdout los vehiculos para cada etapa y el tiempo total de la solucion
-void mostrar_solucion(solucion s, vector<costoEtapa> costos) {
+void mostrar_solucion(solucion s, vector< pair<int,int> > &vehiculos, int fila, int columna, vector<costoEtapa> costos) {
     int n = costos.size();
     for(int i = 0; i < n; i++) {
         string v = "";
-        if (s.vehiculos[i] == BMX) {
-            v = "BMX";
-        } else if (s.vehiculos[i] == MOTO) {
-            v = "Motocross";
+        if (vehiculos[i].first == MOTO) {
+            if (vehiculos[i].second <= fila) {
+                v = "Motocross";
+            } else {
+                v = "BMX";
+            }
+        } else if (vehiculos[i].first == BUGGY) {
+            if (vehiculos[i].second <= columna) {
+                v = "Buggy";
+            } else {
+                v = "BMX";
+            }
         } else {
-            v = "Buggy";
+            v = "BMX";
         }
         cout << "Etapa " << i+1 << ": " << v << endl;
     }
