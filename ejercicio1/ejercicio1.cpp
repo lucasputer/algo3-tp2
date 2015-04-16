@@ -77,8 +77,8 @@ int main() {
 
     // cargo los costos
     vector<costoEtapa> costos(n, costoEtapa());
+    int bmx, moto, buggy;
     for(int i = 0; i < n; i++) {
-        int bmx, moto, buggy;
         cin >> bmx;
         cin >> moto;
         cin >> buggy;
