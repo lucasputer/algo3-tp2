@@ -8,6 +8,7 @@ using namespace std;
 #define MOTO       1
 #define BUGGY      2
 
+// struct que contiene el costo de una etapa con diferentes vehiculos
 struct costoEtapa {
 
     costoEtapa() : bmx(0), moto(0), buggy(0) {}
@@ -29,14 +30,19 @@ struct costoEtapa {
     int buggy;
 };
 
+// celda de la Tabla
 struct celda {
 
     celda() : tiempo(0), vehiculo(BMX), etapa(0), antecesor(-1,-1) {}
 
-    int tiempo;
-    int vehiculo;
-    int etapa;
+    // antecesor son las coordenadas de la celda sobre la cual se basa esta solucion
     pair<int,int> antecesor;
+    // la etapa que se modifica en esta celda
+    int etapa;
+    // el vehiculo que se agrega en esta celda
+    int vehiculo;
+    // el tiempo total de la carrera que se obtiene al poner el vehiculo en la etapa
+    int tiempo;
 };
 
 typedef vector<celda> Vec;
@@ -46,7 +52,7 @@ typedef vector<Vec> Tabla;
 int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
 vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n);
 void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
-celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos);
+celda nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos);
 
 // Implementacion. Contiene el cargado de input más la resolución del ejercicio.
 int main() {
@@ -60,9 +66,11 @@ int main() {
     int kb;
     cin >> kb;
 
+    // limito la cantidad de motos a la cantidad de etapas
     if(km > n) {
         km = n;
     }
+    // limito la cantidad de buggys a la cantidad de etapas
     if(kb > n) {
         kb = n;
     }
@@ -88,23 +96,25 @@ int main() {
 
     // calculo la primera fila
     for(int i = 1; i <= kb; i++) {
-        matriz[0][i] = agregar_vehiculo(matriz, 0, i-1, BUGGY, costos);
+        matriz[0][i] = nueva_celda(matriz, 0, i-1, BUGGY, costos);
     }
     //mostrar_celda(matriz, 0, 1, costos);
 
     // calculo la primera columna
     for(int i = 1; i <= km; i++) {
-        matriz[i][0] = agregar_vehiculo(matriz, i-1, 0, MOTO, costos);
+        matriz[i][0] = nueva_celda(matriz, i-1, 0, MOTO, costos);
     }
-
     //mostrar_celda(matriz, 1, 0, costos);
     //mostrar_celda(matriz, 2, 0, costos);
 
     // calculo todas las celdas internas de la tabla
     for(int i = 1; i <= km; i++) {
         for(int j = 1; j <= kb; j++) {
-            celda aux_moto = agregar_vehiculo(matriz, i-1, j, MOTO, costos);
-            celda aux_buggy = agregar_vehiculo(matriz, i, j-1, BUGGY, costos);
+            // comparo agregar una moto a la celda superior contra
+            // agregar un buggy a la celda de la izquierda
+            celda aux_moto = nueva_celda(matriz, i-1, j, MOTO, costos);
+            celda aux_buggy = nueva_celda(matriz, i, j-1, BUGGY, costos);
+            // y elijo la que minimiza el tiempo total del rally
             if (aux_moto.tiempo < aux_buggy.tiempo) {
                 matriz[i][j] = aux_moto;
             } else {
@@ -114,11 +124,20 @@ int main() {
         }
     }
 
+    // muestro la ultima celda de la matriz que tiene la solucion
     mostrar_celda(matriz, km, kb, costos);
 }
 
-// , agrega ese nuevo vehiculo a la celda y la devuelve
-celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos) {
+/**
+ * Crea una nueva celda agregando un vehiculo a una celda base.
+ * La nueva celda tiene un tiempo total menor o igual que la celda base.
+ *
+ * param tabla: la matriz de soluciones parciales.
+ * param fila: la fila de la celda base en la tabla.
+ * param columna: la columna de la celda base en la tabla.
+ * param costos: vector de costos para cada vehiculo en cada etapa.
+ */
+celda nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
 
@@ -142,10 +161,18 @@ celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector
     return nueva;
 }
 
-
+/**
+ * Devuelve el tiempo total que toma la solucion parcial para una celda dada.
+ *
+ * param tabla: la matriz de soluciones parciales.
+ * param fila: la fila de la celda en la tabla.
+ * param columna: la columna de la celda en la tabla.
+ * param costos: vector de costos para cada vehiculo en cada etapa.
+ */
 int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
+
     int tiempo = 0;
     for(int i = 0; i < n; i++) {
         int aux = 0;
@@ -161,6 +188,16 @@ int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos
     return tiempo;
 }
 
+/**
+ * Devuelve los vehiculos de la solucion parcial para una celda dada.
+ * Esto se realiza navegando hacia atras desde la celda dada hasta la celda (0,0)
+ * usando los atributos "antecesor".
+ *
+ * param tabla: la matriz de soluciones parciales.
+ * param fila: la fila de la celda en la tabla.
+ * param columna: la columna de la celda en la tabla.
+ * param n: la cantidad de etapas del problema.
+ */
 vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n) {
     celda aux = tabla[fila][columna];
     vector<int> vehiculos = vector<int>(n, BMX);
@@ -183,10 +220,18 @@ vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n) 
     return vehiculos;
 }
 
-// muestra por stdout los vehiculos para cada etapa y el tiempo total de la celda
+/**
+ * Muestra por stdout la solucion parcial para una celda dada.
+ *
+ * param tabla: la matriz de soluciones parciales.
+ * param fila: la fila de la celda en la tabla.
+ * param columna: la columna de la celda en la tabla.
+ * param costos: vector de costos para cada vehiculo en cada etapa.
+ */
 void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
+
     for(int i = 0; i < n; i++) {
         string v = "";
         if (vehiculos[i] == MOTO) {
