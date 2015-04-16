@@ -43,10 +43,10 @@ typedef vector<celda> Vec;
 typedef vector<Vec> Tabla;
 
 // Prototipado de funciones
-int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> costos);
+int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
 vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n);
-void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> costos);
-celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> costos);
+void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
+celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos);
 
 // Implementacion. Contiene el cargado de input más la resolución del ejercicio.
 int main() {
@@ -118,7 +118,7 @@ int main() {
 }
 
 // , agrega ese nuevo vehiculo a la celda y la devuelve
-celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> costos) {
+celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
 
@@ -143,7 +143,7 @@ celda agregar_vehiculo(Tabla &tabla, int fila, int columna, int vehiculo, vector
 }
 
 
-int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> costos) {
+int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
     int tiempo = 0;
@@ -184,7 +184,7 @@ vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n) 
 }
 
 // muestra por stdout los vehiculos para cada etapa y el tiempo total de la celda
-void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> costos) {
+void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
     for(int i = 0; i < n; i++) {
