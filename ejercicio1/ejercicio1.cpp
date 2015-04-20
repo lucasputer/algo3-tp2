@@ -244,4 +244,5 @@ void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &cost
         cout << "Etapa " << i+1 << ": " << v << endl;
     }
     cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
+    //cout << tabla[fila][columna].tiempo << endl;
 }
