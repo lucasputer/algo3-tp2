@@ -232,6 +232,7 @@ void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &cost
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
 
+    cout << tabla[fila][columna].tiempo << " ";
     for(int i = 0; i < n; i++) {
         string v = "";
         if (vehiculos[i] == MOTO) {
@@ -241,8 +242,9 @@ void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &cost
         } else {
             v = "BMX";
         }
-        cout << "Etapa " << i+1 << ": " << v << endl;
+        //cout << "Etapa " << i+1 << ": " << v << endl;
+        cout << vehiculos[i]+1 << " ";
     }
-    cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
-    //cout << tabla[fila][columna].tiempo << endl;
+    //cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
+    cout << endl;
 }
