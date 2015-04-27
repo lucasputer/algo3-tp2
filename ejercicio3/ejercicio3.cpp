@@ -3,15 +3,13 @@
 #include <queue>
 using namespace std;
 
-class DisjointSetPozos    {
-    int *id, cantidadDeArboles, *tamano, *costo, costoTotal, costoRefineria;
+class DisjointSet    {
+    int *id, cantidadDeArboles, *tamano, *costo;
     
 public:
     
-    DisjointSetPozos(int N, int c)   {
+    DisjointSet(int N, int c)   {
         cantidadDeArboles = N;
-        costoTotal = 0;
-        costoRefineria = c;
 
         id = new int[N];
         tamano = new int[N];
@@ -20,11 +18,9 @@ public:
         for(int i=0; i<N; i++)  {
             id[i] = i;
             tamano[i] = 1;
-            costo[i] = costoRefineria;
-            costoTotal += costoRefineria;
         }
     }
-    ~DisjointSetPozos()   {
+    ~DisjointSet()   {
     delete [] id;
     delete [] tamano;
     delete [] costo;
@@ -52,15 +48,9 @@ public:
         if(tamano[i] < tamano[j]){
             id[i] = j;
             tamano[j] += tamano[i];
-            costo[i] = costo[i] - costoRefineria + costoTuberia;
-            costo[j] += costo[i];
-            costoTotal = costoTotal - costoRefineria + costoTuberia;
         }else{
             id[j] = i;
             tamano[i] += tamano[j];
-            costo[j] = costo[j] - costoRefineria + costoTuberia;
-            costo[i] += costo[j];
-            costoTotal = costoTotal - costoRefineria + costoTuberia;
         }
         cantidadDeArboles--;
     }
@@ -73,10 +63,6 @@ public:
     // Devuelve la cantidad de arboles
     int count() {
         return cantidadDeArboles;
-    }
-
-    int dameCostoTotal(){
-        return costoTotal;
     }
 
 };
@@ -128,6 +114,9 @@ int main() {
     //acceder por tuberia o necesito refineria si o si.
     std::priority_queue<Tuberia, std::vector<Tuberia>, compararPorCostos> tuberias;
 
+    //defino el costo total como el costo de poner una refineria por pozo
+    int costoTotal = n*c;
+
     //O(m*log(m))
     for(int i = 0; i < m; i++) {
         int desde, hasta, costo;
@@ -143,7 +132,7 @@ int main() {
         }
     }
 
-    DisjointSetPozos componentes(n,c);
+    DisjointSet componentes(n,c);
 
     //en este vector se guardaran las tuberias que se vayan construyendo, tiene como maximo
     //el tamano de tuberias que agregue a tuberias, es decir, la cantidad de tuberias con costo menor a c
@@ -157,12 +146,19 @@ int main() {
 
         //busco con -1 para que encuentre el indice correcto en el UF
         if(!componentes.conectados(t.desde - 1,t.hasta - 1)){
+
+            //uno las componentes en el disjoint set
             componentes.unir(t.desde - 1,t.hasta - 1,t.costo);
+
+            //agrego la tuberia a tuberias construidas
             tuberiasConstruidas.push_back(t);
+
+            //bajo el costo total
+            costoTotal = costoTotal - c + t.costo;
         }
     }
 
-    cout << componentes.dameCostoTotal() << " " <<  componentes.count() << " " << tuberiasConstruidas.size() << endl;
+    cout << costoTotal << " " <<  componentes.count() << " " << tuberiasConstruidas.size() << endl;
 
     //imprimo los pozos que tienen refineria
     //defino que un pozo tiene refineria si es la raiz de su componente
