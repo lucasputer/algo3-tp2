@@ -26,7 +26,7 @@ public:
     delete [] costo;
     }
 
-    // Return the id of component corresponding to object p.
+    // Devuelve el id de la componente a la que pertenece p
     int buscar(int p) {
         int raiz = p;
         while (raiz != id[raiz])
