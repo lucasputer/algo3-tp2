@@ -4,7 +4,7 @@
 using namespace std;
 
 class DisjointSet    {
-    int *id, cantidadDeArboles, *tamano, *costo;
+    int *id, cantidadDeArboles, *tamano;
     
 public:
     
@@ -13,7 +13,6 @@ public:
 
         id = new int[N];
         tamano = new int[N];
-        costo = new int[N];
 
         for(int i=0; i<N; i++)  {
             id[i] = i;
@@ -23,7 +22,6 @@ public:
     ~DisjointSet()   {
     delete [] id;
     delete [] tamano;
-    delete [] costo;
     }
 
     // Devuelve el id de la componente a la que pertenece p
@@ -173,7 +171,6 @@ int main() {
     for(int i = 0; i < tuberiasConstruidas.size();i++){
         cout << tuberiasConstruidas[i].desde << " " << tuberiasConstruidas[i].hasta << endl;
     }
-
 
 }
 
