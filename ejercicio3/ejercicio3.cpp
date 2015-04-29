@@ -8,7 +8,7 @@ class DisjointSet    {
     
 public:
     
-    DisjointSet(int N, int c)   {
+    DisjointSet(int N)   {
         cantidadDeArboles = N;
 
         id = new int[N];
@@ -130,7 +130,7 @@ int main() {
         }
     }
 
-    DisjointSet componentes(n,c);
+    DisjointSet componentes(n);
 
     //en este vector se guardaran las tuberias que se vayan construyendo, tiene como maximo
     //el tamano de tuberias que agregue a tuberias, es decir, la cantidad de tuberias con costo menor a c
