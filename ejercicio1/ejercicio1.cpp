@@ -142,23 +142,33 @@ celda nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<cost
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
 
     int min_etapa = -1;
-    int min_tiempo = -1;
+    int min_tiempo = tabla[fila][columna].tiempo;
 
     for(int i = 0; i < n; i++) {
         int tiempo = tabla[fila][columna].tiempo - costos[i].costo(vehiculos[i]) +  costos[i].costo(vehiculo);
-        if (tiempo < min_tiempo || min_tiempo == -1) {
+        if (tiempo < min_tiempo) {
             min_tiempo = tiempo;
             min_etapa = i;
         }
     }
 
-    celda nueva;
-    nueva.tiempo = min_tiempo;
-    nueva.etapa = min_etapa;
-    nueva.vehiculo = vehiculo;
-    nueva.antecesor.first = fila;
-    nueva.antecesor.second = columna;
-    return nueva;
+    if (min_etapa != -1) {
+        celda nueva;
+        nueva.tiempo = min_tiempo;
+        nueva.etapa = min_etapa;
+        nueva.vehiculo = vehiculo;
+        nueva.antecesor.first = fila;
+        nueva.antecesor.second = columna;
+        return nueva;
+    } else {
+        celda nueva;
+        nueva.tiempo = tabla[fila][columna].tiempo;
+        nueva.etapa = tabla[fila][columna].etapa;
+        nueva.vehiculo = tabla[fila][columna].vehiculo;
+        nueva.antecesor.first = fila;
+        nueva.antecesor.second = columna;
+        return nueva;
+    }
 }
 
 /**
