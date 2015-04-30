@@ -49,6 +49,7 @@ typedef vector<celda> Vec;
 typedef vector<Vec> Tabla;
 
 // Prototipado de funciones
+void resolver(int n, int km, int kb, vector<costoEtapa>& costos);
 int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
 vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n);
 void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
@@ -86,6 +87,10 @@ int main() {
         costos[i] = costo;
     }
 
+    resolver(n, km, kb, costos);
+}
+
+void resolver(int n, int km, int kb, vector<costoEtapa>& costos) {
     // creo la tabla de celdaes parciales
     Tabla matriz(km+1, Vec(kb+1, celda()));
 
