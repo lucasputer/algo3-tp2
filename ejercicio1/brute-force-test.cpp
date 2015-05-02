@@ -1,14 +1,17 @@
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
 using namespace std;
 
-// Structs y Typedefs
 // para indexar los arrays de costos y otras operaciones con vehiculos
 #define BMX        0
 #define MOTO       1
 #define BUGGY      2
 
-// struct que contiene el costo de una etapa con diferentes vehiculos
 struct costoEtapa {
 
     costoEtapa() : bmx(0), moto(0), buggy(0) {}
@@ -30,6 +33,15 @@ struct costoEtapa {
     int buggy;
 };
 
+string resolver_bruto(int n, int km, int kb, vector<costoEtapa>& costos);
+vector<int> bfs_bruto(int n, int h, int km_aux, int kb_aux,
+    vector<int> vehiculos, int km, int kb, vector<costoEtapa>& costos);
+int tiempo_total_aux(vector<int> vehiculos, vector<costoEtapa> &costos);
+string resolver_ej1(int n, int km, int kb, vector<costoEtapa>& costos);
+
+
+/********************** EJERCICIO 1 (sin main) ************************************/
+
 // celda de la Tabla
 struct celda {
 
@@ -49,48 +61,13 @@ typedef vector<celda> Vec;
 typedef vector<Vec> Tabla;
 
 // Prototipado de funciones
-void resolver(int n, int km, int kb, vector<costoEtapa>& costos);
 int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
 vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n);
-void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
+string mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
 celda nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos);
 
-// Implementacion. Contiene el cargado de input más la resolución del ejercicio.
-int main() {
-    // cantidad de etapas
-    int n;
-    cin >> n;
-    // cantidad de veces que puedo usar la moto
-    int km;
-    cin >> km;
-    // cantidad de veces que puedo usar el buggy
-    int kb;
-    cin >> kb;
+string resolver_ej1(int n, int km, int kb, vector<costoEtapa>& costos) {
 
-    // limito la cantidad de motos a la cantidad de etapas
-    if(km > n) {
-        km = n;
-    }
-    // limito la cantidad de buggys a la cantidad de etapas
-    if(kb > n) {
-        kb = n;
-    }
-
-    // cargo los costos
-    vector<costoEtapa> costos(n, costoEtapa());
-    int bmx, moto, buggy;
-    for(int i = 0; i < n; i++) {
-        cin >> bmx;
-        cin >> moto;
-        cin >> buggy;
-        costoEtapa costo = costoEtapa(bmx, moto, buggy);
-        costos[i] = costo;
-    }
-
-    resolver(n, km, kb, costos);
-}
-
-void resolver(int n, int km, int kb, vector<costoEtapa>& costos) {
     // creo la tabla de celdaes parciales
     Tabla matriz(km+1, Vec(kb+1, celda()));
 
@@ -130,7 +107,7 @@ void resolver(int n, int km, int kb, vector<costoEtapa>& costos) {
     }
 
     // muestro la ultima celda de la matriz que tiene la solucion
-    mostrar_celda(matriz, km, kb, costos);
+    return mostrar_celda(matriz, km, kb, costos);
 }
 
 /**
@@ -243,11 +220,14 @@ vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n) 
  * param columna: la columna de la celda en la tabla.
  * param costos: vector de costos para cada vehiculo en cada etapa.
  */
-void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
+string mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
     int n = costos.size();
     vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
 
-    cout << tabla[fila][columna].tiempo << " ";
+
+    //cout << tabla[fila][columna].tiempo << " ";
+    string aux = to_string(tabla[fila][columna].tiempo);
+    aux += " ";
     for(int i = 0; i < n; i++) {
         string v = "";
         if (vehiculos[i] == MOTO) {
@@ -258,8 +238,148 @@ void mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &cost
             v = "BMX";
         }
         //cout << "Etapa " << i+1 << ": " << v << endl;
-        cout << vehiculos[i]+1 << " ";
+        //cout << vehiculos[i]+1 << " ";
+        aux += to_string(vehiculos[i]+1);
+        aux += " ";
     }
     //cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
-    cout << endl;
+    //cout << endl;
+    aux += "\n";
+    return aux;
+}
+
+
+/********************** fin EJERCICIO 1 ************************************/
+
+
+// Implementacion
+int main() {
+    srand(time(NULL));
+
+    int n_max = 10;
+    int costo_max = 10000;
+    int muestras_por_n = 1000;
+
+    for (int n = 1; n <= n_max; n++) {
+        cout << n << endl;
+        for (int m = 0; m < muestras_por_n; m++) {
+            int km = (rand()%n)+1;
+            int kb = (rand()%n)+1;
+            vector<costoEtapa> costos(n, costoEtapa());
+            for (int aux = 0; aux < n; aux++) {
+                int bmx = (rand()%costo_max)+1;
+                int moto = (rand()%costo_max)+1;
+                int buggy = (rand()%costo_max)+1;
+                costos[aux].bmx = bmx;
+                costos[aux].moto = moto;
+                costos[aux].buggy = buggy;
+            }
+            string resultado_bruto = resolver_bruto(n, km, kb, costos);
+            string resultado_ej1 = resolver_ej1(n, km, kb, costos);
+            if (resultado_bruto.compare(resultado_ej1) == 0) {
+                //cout << "BIEN" << endl;
+            } else {
+                // Veo si de verdad difierien en los tiempos, o solamente es una diferencia de orden
+                std::stringstream  stream1(resultado_bruto);
+                std::string tiempo_bruto;
+                stream1 >> tiempo_bruto;
+
+                std::stringstream  stream2(resultado_ej1);
+                std::string tiempo_ej1;
+                stream2 >> tiempo_ej1;
+
+                if (tiempo_bruto.compare(tiempo_ej1) != 0) {
+                    cout << "\nDIFERENCIA ENCONTRADA" << endl;
+                    cout << "Problema: " << n << " " << km << " " << kb << endl;
+                    for(int i = 0; i < n; i++) {
+                        cout << costos[i].costo(BMX) << " ";
+                        cout << costos[i].costo(MOTO) << " ";
+                        cout << costos[i].costo(BUGGY) << endl;
+                    }
+                    cout << "Bruto: " << resultado_bruto;
+                    cout << "Ej1: " << resultado_ej1;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+int tiempo_total_aux(vector<int> vehiculos, vector<costoEtapa> &costos) {
+    int n = vehiculos.size();
+    int tiempo = 0;
+    for(int i = 0; i < n; i++) {
+       tiempo = tiempo + costos[i].costo(vehiculos[i]);
+    }
+    return tiempo;
+}
+
+string resolver_bruto(int n, int km, int kb, vector<costoEtapa>& costos) {
+    // solucion inicial
+    vector<int> vehiculos(n, BMX);
+
+    vector<int> sol = bfs_bruto(n, 0, 0, 0, vehiculos, km, kb, costos);
+
+    //cout << tabla[fila][columna].tiempo << " ";
+    string aux = to_string(tiempo_total_aux(sol, costos));
+    aux += " ";
+    for(int i = 0; i < n; i++) {
+        string v = "";
+        if (sol[i] == MOTO) {
+            v = "Motocross";
+        } else if (sol[i] == BUGGY) {
+            v = "Buggy";
+        } else {
+            v = "BMX";
+        }
+        //cout << "Etapa " << i+1 << ": " << v << endl;
+        //cout << vehiculos[i]+1 << " ";
+        aux += to_string(sol[i]+1);
+        aux += " ";
+    }
+    //cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
+    //cout << endl;
+    aux += "\n";
+    return aux;
+}
+
+vector<int> bfs_bruto(int n, int h, int km_aux, int kb_aux,
+    vector<int> vehiculos, int km, int kb, vector<costoEtapa>& costos) {
+
+    if (h >= n || (km_aux >= km && kb_aux >= kb)) {
+        return vehiculos;
+    }
+
+    vector<int> sol_bmx = bfs_bruto(n, h+1, km_aux, kb_aux, vehiculos, km, kb, costos);
+    vector<int> sol_moto = sol_bmx;
+    if (km_aux < km) {
+        vehiculos[h] = MOTO;
+        sol_moto = bfs_bruto(n, h+1, km_aux + 1, kb_aux, vehiculos, km, kb, costos);
+    }
+    vector<int> sol_buggy = sol_bmx;
+    if (kb_aux < kb) {
+        vehiculos[h] = BUGGY;
+        sol_buggy = bfs_bruto(n, h+1, km_aux, kb_aux + 1, vehiculos, km, kb, costos);
+    }
+
+    int tiempo_bmx = tiempo_total_aux(sol_bmx, costos);
+    int tiempo_moto = tiempo_total_aux(sol_moto, costos);
+    int tiempo_buggy = tiempo_total_aux(sol_buggy, costos);
+
+    // elijo el minimo
+    if (tiempo_bmx < tiempo_moto) {
+        if (tiempo_bmx < tiempo_buggy) {
+            return sol_bmx;
+        } else {
+            return sol_buggy;
+        }
+    } else {
+        if (tiempo_moto < tiempo_buggy) {
+            return sol_moto;
+        } else {
+            return sol_buggy;
+        }
+    }
+
 }

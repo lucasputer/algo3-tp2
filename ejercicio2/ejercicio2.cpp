@@ -3,6 +3,8 @@
 #include <stack>
 using namespace std;
 
+#define INFINITO -1
+
 struct Esquina{
 	int sol_max;
 	int left;
@@ -11,7 +13,7 @@ struct Esquina{
 	int down;
 	pair<int, int> pred;
 
-	Esquina() : sol_max(-1), left(-1), right(-1), up(-1), down(-1), pred(make_pair(-1,-1)){};
+	Esquina() : sol_max(0), left(INFINITO), right(INFINITO), up(INFINITO), down(INFINITO), pred(make_pair(INFINITO,INFINITO)){};
 };
 
 typedef vector< vector < Esquina > > Mapa;
@@ -67,7 +69,7 @@ int main() {
 }
 
 void imprimir_resultado(Mapa& mapa, pair<int, int> pos_inicial, pair<int, int> bunker){
-	cout << max(mapa[bunker.first][bunker.second].sol_max, 0) << endl;
+	cout << mapa[bunker.first][bunker.second].sol_max << endl;
 	if (mapa[bunker.first][bunker.second].sol_max >= 0){
 		stack< pair<int,int> > esquinas;
 		pair<int,int> actual = bunker;
@@ -89,7 +91,7 @@ void mostrar(Mapa& m) {
     for(int i = 0; i < n; ++i) {
         int t = m[i].size();
         for (int j = 0; j < t; j++) {
-        	if (m[i][j].sol_max == -1)
+        	if (m[i][j].sol_max == 0)
             	cout << "X ";
             else
             	cout << m[i][j].sol_max << " ";
@@ -99,7 +101,7 @@ void mostrar(Mapa& m) {
 }
 
 int sobrevivientes(int soldados, int zombies){
-	return soldados < zombies ? max(2*soldados-zombies, -1) : soldados;
+	return soldados < zombies ? max(2*soldados-zombies, 0) : soldados;
 }
 
 void resolver(Mapa& mapa, pair<int, int> pos_actual, pair<int, int> bunker){
@@ -107,22 +109,22 @@ void resolver(Mapa& mapa, pair<int, int> pos_actual, pair<int, int> bunker){
 		int i = pos_actual.first;
 		int j = pos_actual.second;
 		Esquina actual = mapa[i][j];
-		if (actual.left != -1 && sobrevivientes(actual.sol_max, actual.left) > mapa[i][j-1].sol_max){
+		if (actual.left != INFINITO && sobrevivientes(actual.sol_max, actual.left) > mapa[i][j-1].sol_max){
 			mapa[i][j-1].sol_max = sobrevivientes(actual.sol_max, actual.left);
 			mapa[i][j-1].pred = make_pair(i,j);
 			resolver(mapa, make_pair(i,j-1), bunker);
 		}
-		if (actual.right != -1 && sobrevivientes(actual.sol_max, actual.right) > mapa[i][j+1].sol_max){
+		if (actual.right != INFINITO && sobrevivientes(actual.sol_max, actual.right) > mapa[i][j+1].sol_max){
 			mapa[i][j+1].sol_max = sobrevivientes(actual.sol_max, actual.right);
 			mapa[i][j+1].pred = make_pair(i,j);
 			resolver(mapa, make_pair(i,j+1), bunker);
 		}
-		if (actual.up != -1 && sobrevivientes(actual.sol_max, actual.up) > mapa[i-1][j].sol_max){
+		if (actual.up != INFINITO && sobrevivientes(actual.sol_max, actual.up) > mapa[i-1][j].sol_max){
 			mapa[i-1][j].sol_max = sobrevivientes(actual.sol_max, actual.up);
 			mapa[i-1][j].pred = make_pair(i,j);
 			resolver(mapa, make_pair(i-1,j), bunker);
 		}
-		if (actual.down != -1 && sobrevivientes(actual.sol_max, actual.down) > mapa[i+1][j].sol_max){
+		if (actual.down != INFINITO && sobrevivientes(actual.sol_max, actual.down) > mapa[i+1][j].sol_max){
 			mapa[i+1][j].sol_max = sobrevivientes(actual.sol_max, actual.down);
 			mapa[i+1][j].pred = make_pair(i,j);
 			resolver(mapa, make_pair(i+1,j), bunker);
