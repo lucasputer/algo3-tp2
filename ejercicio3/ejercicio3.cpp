@@ -4,7 +4,7 @@
 using namespace std;
 
 class DisjointSet    {
-    int *id, cantidadDeArboles, *tamano;
+    int *id, cantidadDeArboles, *rank;
     
 public:
     
@@ -12,16 +12,16 @@ public:
         cantidadDeArboles = N;
 
         id = new int[N];
-        tamano = new int[N];
+        rank = new int[N];
 
         for(int i=0; i<N; i++)  {
             id[i] = i;
-            tamano[i] = 1;
+            rank[i] = 1;
         }
     }
     ~DisjointSet()   {
     delete [] id;
-    delete [] tamano;
+    delete [] rank;
     }
 
     // Devuelve el id de la componente a la que pertenece p
@@ -43,12 +43,13 @@ public:
         if (i == j) return;
         
         //hace que la raiz del menor apunte a la del mayor
-        if(tamano[i] < tamano[j]){
+        if(rank[i] < rank[j]){
             id[i] = j;
-            tamano[j] += tamano[i];
         }else{
             id[j] = i;
-            tamano[i] += tamano[j];
+            if(rank[i] == rank[j]){
+                rank[i]++;
+            }   
         }
         cantidadDeArboles--;
     }
