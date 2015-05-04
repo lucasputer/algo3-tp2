@@ -147,7 +147,7 @@ int main() {
         if(!componentes.conectados(t.desde - 1,t.hasta - 1)){
 
             //uno las componentes en el disjoint set
-            componentes.unir(t.desde - 1,t.hasta - 1,t.costo);
+            componentes.unir(t.desde - 1,t.hasta - 1);
 
             //agrego la tuberia a tuberias construidas
             tuberiasConstruidas.push_back(t);
