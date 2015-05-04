@@ -37,7 +37,7 @@ public:
         return raiz;
     }
     // mergea dos sets
-    void unir(int x, int y, int costoTuberia)    {
+    void unir(int x, int y)    {
         int i = buscar(x);
         int j = buscar(y);
         if (i == j) return;
