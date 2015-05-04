@@ -45,230 +45,152 @@ string resolver_ej1(int n, int km, int kb, vector<costoEtapa>& costos);
 // celda de la Tabla
 struct celda {
 
-    celda() : tiempo(0), vehiculo(BMX), etapa(0), antecesor(-1,-1), r_etapa(-1), r_vehiculo(-1) {}
+    celda() : tiempo(0), antecesor(-1,-1), vehiculo(-1) {}
 
     // antecesor son las coordenadas de la celda sobre la cual se basa esta solucion
-    pair<int,int> antecesor;
-    // la etapa que se modifica en esta celda
-    int etapa;
+    pair<int, int> antecesor;
     // el vehiculo que se agrega en esta celda
     int vehiculo;
-    // la etapa del reemplazo
-    int r_etapa;
-    // el vehiculo del reemplazo
-    int r_vehiculo;
     // el tiempo total de la carrera que se obtiene al poner el vehiculo en la etapa
     int tiempo;
 };
 
 typedef vector<celda> Vec;
 typedef vector<Vec> Tabla;
+typedef vector<Tabla> HiperTabla;
 
-// Prototipado de funciones
-int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
-vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n);
-string mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos);
-pair<celda,bool> nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos);
+int min(int a, int b);
+int min(int a, int b, int c);
 
 string resolver_ej1(int n, int km, int kb, vector<costoEtapa>& costos) {
     // creo la tabla de celdaes parciales
-    Tabla matriz(km+1, Vec(kb+1, celda()));
+    // las etapas van de 0 a n-1
+    HiperTabla matriz(n, Tabla(km+1, Vec(kb+1, celda())));
 
-    // La celda (0,0) ya tiene inicializada todas las etapas usando BMX
-    // Calculamos la sumatoria de los tiempos para la celda inicial
-    matriz[0][0].tiempo = tiempo_total(matriz, 0, 0, costos);
-    //mostrar_celda(matriz, 0, 0, costos);
-
-    // calculo la primera fila
-    for(int i = 1; i <= kb; i++) {
-        matriz[0][i] = nueva_celda(matriz, 0, i-1, BUGGY, costos).first;
-    }
-    //mostrar_celda(matriz, 0, 1, costos);
-
-    // calculo la primera columna
-    for(int i = 1; i <= km; i++) {
-        matriz[i][0] = nueva_celda(matriz, i-1, 0, MOTO, costos).first;
-    }
-    //mostrar_celda(matriz, 1, 0, costos);
-    //mostrar_celda(matriz, 2, 0, costos);
-
-    // calculo todas las celdas internas de la tabla
-    for(int i = 1; i <= km; i++) {
-        for(int j = 1; j <= kb; j++) {
-            // comparo agregar una moto a la celda superior contra
-            // agregar un buggy a la celda de la izquierda
-            pair<celda,bool> aux_moto = nueva_celda(matriz, i-1, j, MOTO, costos);
-            pair<celda,bool> aux_buggy = nueva_celda(matriz, i, j-1, BUGGY, costos);
-            // y elijo la que minimiza el tiempo total del rally
-            if (aux_moto.first.tiempo < aux_buggy.first.tiempo) {
-                matriz[i][j] = aux_moto.first;
-                if (aux_moto.second) {
-                    pair<celda,bool> aux = nueva_celda(matriz, i, j, BUGGY, costos);
-                    matriz[i][j].r_etapa = aux.first.etapa;
-                    matriz[i][j].r_vehiculo = aux.first.vehiculo;
+    // inicializo n = 0
+    for (int i = 0; i <= km; i++) {
+        for (int j = 0; j <= kb; j++) {
+            if (i == 0 && j == 0) {
+                matriz[0][i][j].tiempo = costos[0].costo(BMX);
+                matriz[0][i][j].vehiculo = BMX;
+            } else if (i == 0) { // j != 0
+                int aux1 = costos[0].costo(BMX);
+                int aux2 = costos[0].costo(BUGGY);
+                matriz[0][i][j].tiempo = min(aux1, aux2);
+                // guardo el vehiculo
+                if (matriz[0][i][j].tiempo == aux1) {
+                    matriz[0][i][j].vehiculo = BMX;
+                } else {
+                    matriz[0][i][j].vehiculo = BUGGY;
+                }
+            } else if (j == 0) { // i == 0
+                int aux1 = costos[0].costo(BMX);
+                int aux2 = costos[0].costo(MOTO);
+                matriz[0][i][j].tiempo = min(aux1, aux2);
+                // guardo el vehiculo
+                if (matriz[0][i][j].tiempo == aux1) {
+                    matriz[0][i][j].vehiculo = BMX;
+                } else {
+                    matriz[0][i][j].vehiculo = BUGGY;
                 }
             } else {
-                matriz[i][j] = aux_buggy.first;
-                if (aux_buggy.second) {
-                    pair<celda,bool> aux = nueva_celda(matriz, i, j, MOTO, costos);
-                    matriz[i][j].r_etapa = aux.first.etapa;
-                    matriz[i][j].r_vehiculo = aux.first.vehiculo;
+                int aux1 = costos[0].costo(BMX);
+                int aux2 = costos[0].costo(MOTO);
+                int aux3 = costos[0].costo(BUGGY);
+                matriz[0][i][j].tiempo = min(aux1, aux2, aux3);
+                // guardo el vehiculo
+                if (matriz[0][i][j].tiempo == aux1) {
+                    matriz[0][i][j].vehiculo = BMX;
+                } else if (matriz[0][i][j].tiempo == aux2) {
+                    matriz[0][i][j].vehiculo = MOTO;
+                } else {
+                    matriz[0][i][j].vehiculo = BUGGY;
                 }
             }
-            //mostrar_celda(matriz, i, j, costos);
         }
     }
 
-    // muestro la ultima celda de la matriz que tiene la solucion
-    return mostrar_celda(matriz, km, kb, costos);
-}
+    for (int h = 1; h < n; h++) {
+        for (int i = 0; i <= km; i++) {
+            for (int j = 0; j <= kb; j++) {
+                if (i == 0 && j == 0) {
+                    matriz[h][i][j].tiempo = costos[h].costo(BMX) + matriz[h-1][i][j].tiempo;
+                    matriz[h][i][j].antecesor = make_pair(i,j);
+                    matriz[h][i][j].vehiculo = BMX;
+                } else if (i == 0) { // j != 0
+                    int aux1 = costos[h].costo(BMX) + matriz[h-1][i][j].tiempo;
+                    int aux2 = costos[h].costo(BUGGY) + matriz[h-1][i][j-1].tiempo;
+                    matriz[h][i][j].tiempo = min(aux1, aux2);
+                    // guardo el antecesor y el vehiculo
+                    if (matriz[h][i][j].tiempo == aux1) {
+                        matriz[h][i][j].antecesor = make_pair(i,j);
+                        matriz[h][i][j].vehiculo = BMX;
+                    } else {
+                        matriz[h][i][j].antecesor = make_pair(i,j-1);
+                        matriz[h][i][j].vehiculo = BUGGY;
+                    }
+                } else if (j == 0) { // i == 0
+                    int aux1 = costos[h].costo(BMX) + matriz[h-1][i][j].tiempo;
+                    int aux2 = costos[h].costo(MOTO) + matriz[h-1][i-1][j].tiempo;
+                    matriz[h][i][j].tiempo = min(aux1, aux2);
+                    // guardo el antecesor y el vehiculo
+                    if (matriz[h][i][j].tiempo == aux1) {
+                        matriz[h][i][j].antecesor = make_pair(i,j);
+                        matriz[h][i][j].vehiculo = BMX;
+                    } else {
+                        matriz[h][i][j].antecesor = make_pair(i-1,j);
+                        matriz[h][i][j].vehiculo = MOTO;
+                    }
+                } else {
+                    int aux1 = costos[h].costo(BMX) + matriz[h-1][i][j].tiempo;
+                    int aux2 = costos[h].costo(MOTO) + matriz[h-1][i-1][j].tiempo;
+                    int aux3 = costos[h].costo(BUGGY) + matriz[h-1][i][j-1].tiempo;
+                    matriz[h][i][j].tiempo = min(aux1, aux2, aux3);
+                    // guardo el antecesor y el vehiculo
+                    if (matriz[h][i][j].tiempo == aux1) {
+                        matriz[h][i][j].antecesor = make_pair(i,j);
+                        matriz[h][i][j].vehiculo = BMX;
+                    } else if (matriz[h][i][j].tiempo == aux2) {
+                        matriz[h][i][j].antecesor = make_pair(i-1,j);
+                        matriz[h][i][j].vehiculo = MOTO;
+                    } else {
+                        matriz[h][i][j].antecesor = make_pair(i,j-1);
+                        matriz[h][i][j].vehiculo = BUGGY;
+                    }
+                }
+            }
+        }
+    }
 
-/**
- * Crea una nueva celda agregando un vehiculo a una celda base.
- * La nueva celda tiene un tiempo total menor o igual que la celda base.
- *
- * param tabla: la matriz de soluciones parciales.
- * param fila: la fila de la celda base en la tabla.
- * param columna: la columna de la celda base en la tabla.
- * param costos: vector de costos para cada vehiculo en cada etapa.
- */
-pair<celda, bool> nueva_celda(Tabla &tabla, int fila, int columna, int vehiculo, vector<costoEtapa> &costos) {
-    int n = costos.size();
-    vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
+    // reconstruyo la solucion
+    vector<int> vehiculos(n, -1);
+    celda aux = matriz[n-1][km][kb];
+    for (int h = n-1; h > 0; h--) {
+        vehiculos[h] = aux.vehiculo;
+        aux = matriz[h-1][aux.antecesor.first][aux.antecesor.second];
+    }
+    vehiculos[0] = aux.vehiculo;
 
-    int min_etapa = -1;
-    int min_tiempo = tabla[fila][columna].tiempo;
-
+    // muestro la solucion por stdout
+    string au2 = to_string(matriz[n-1][km][kb].tiempo);
+    au2 += " ";
     for(int i = 0; i < n; i++) {
-        int tiempo = tabla[fila][columna].tiempo - costos[i].costo(vehiculos[i]) +  costos[i].costo(vehiculo);
-        if (tiempo < min_tiempo) {
-            min_tiempo = tiempo;
-            min_etapa = i;
-        }
+        au2 += to_string(vehiculos[i]+1);
+        au2 += " ";
     }
-
-    if (min_etapa != -1) {
-        celda nueva;
-        nueva.tiempo = min_tiempo;
-        nueva.etapa = min_etapa;
-        nueva.vehiculo = vehiculo;
-        nueva.antecesor.first = fila;
-        nueva.antecesor.second = columna;
-        bool reemplazo = vehiculos[min_etapa] != BMX;
-        return make_pair(nueva, reemplazo);
-    } else {
-        celda nueva;
-        nueva.tiempo = tabla[fila][columna].tiempo;
-        nueva.etapa = tabla[fila][columna].etapa;
-        nueva.vehiculo = tabla[fila][columna].vehiculo;
-        nueva.antecesor.first = fila;
-        nueva.antecesor.second = columna;
-        return make_pair(nueva, false);
-    }
+    au2 += "\n";
+    return au2;
 }
 
-/**
- * Devuelve el tiempo total que toma la solucion parcial para una celda dada.
- *
- * param tabla: la matriz de soluciones parciales.
- * param fila: la fila de la celda en la tabla.
- * param columna: la columna de la celda en la tabla.
- * param costos: vector de costos para cada vehiculo en cada etapa.
- */
-int tiempo_total(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
-    int n = costos.size();
-    vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
-
-    int tiempo = 0;
-    for(int i = 0; i < n; i++) {
-        int aux = 0;
-        if (vehiculos[i] == MOTO) {
-            aux =  costos[i].costo(MOTO);
-        } else if (vehiculos[i] == BUGGY) {
-            aux = costos[i].costo(BUGGY);
-        } else {
-            aux = costos[i].costo(BMX);
-        }
-       tiempo = tiempo + aux;
-    }
-    return tiempo;
+int min(int a, int b) {
+    return a < b ? a : b;
 }
 
-/**
- * Devuelve los vehiculos de la solucion parcial para una celda dada.
- * Esto se realiza navegando hacia atras desde la celda dada hasta la celda (0,0)
- * usando los atributos "antecesor".
- *
- * param tabla: la matriz de soluciones parciales.
- * param fila: la fila de la celda en la tabla.
- * param columna: la columna de la celda en la tabla.
- * param n: la cantidad de etapas del problema.
- */
- vector<int> obtener_vehiculos_celda(Tabla &tabla, int fila, int columna, int n) {
-     celda aux = tabla[fila][columna];
-     vector<int> vehiculos = vector<int>(n, BMX);
-     vector<bool> cambios = vector<bool>(n, false);
-     int counter = fila+columna;
-
-     vehiculos[aux.etapa] = aux.vehiculo;
-     cambios[aux.etapa] = true;
-     counter--;
-     while (counter > 0) {
-         int f = aux.antecesor.first;
-         int c = aux.antecesor.second;
-         aux = tabla[f][c];
-         if(cambios[aux.etapa] == false) {
-             vehiculos[aux.etapa] = aux.vehiculo;
-             cambios[aux.etapa] = true;
-         }
-         if(aux.r_etapa != -1 && cambios[aux.r_etapa] == false) {
-             vehiculos[aux.r_etapa] = aux.r_vehiculo;
-             cambios[aux.r_etapa] = true;
-         }
-         counter--;
-     }
-     return vehiculos;
- }
-
-/**
- * Muestra por stdout la solucion parcial para una celda dada.
- *
- * param tabla: la matriz de soluciones parciales.
- * param fila: la fila de la celda en la tabla.
- * param columna: la columna de la celda en la tabla.
- * param costos: vector de costos para cada vehiculo en cada etapa.
- */
-string mostrar_celda(Tabla &tabla, int fila, int columna, vector<costoEtapa> &costos) {
-    int n = costos.size();
-    vector<int> vehiculos = obtener_vehiculos_celda(tabla, fila, columna, n);
-
-
-    //cout << tabla[fila][columna].tiempo << " ";
-    string aux = to_string(tabla[fila][columna].tiempo);
-    aux += " ";
-    for(int i = 0; i < n; i++) {
-        string v = "";
-        if (vehiculos[i] == MOTO) {
-            v = "Motocross";
-        } else if (vehiculos[i] == BUGGY) {
-            v = "Buggy";
-        } else {
-            v = "BMX";
-        }
-        //cout << "Etapa " << i+1 << ": " << v << endl;
-        //cout << vehiculos[i]+1 << " ";
-        aux += to_string(vehiculos[i]+1);
-        aux += " ";
-    }
-    //cout << "Tiempo total: " << tabla[fila][columna].tiempo << endl;
-    //cout << endl;
-    aux += "\n";
-    return aux;
+int min(int a, int b, int c) {
+    return min(min(a,b),c);
 }
-
 
 /********************** fin EJERCICIO 1 ************************************/
-
 
 // Implementacion
 int main() {
