@@ -91,7 +91,7 @@ string resolver_ej1(int n, int km, int kb, vector<costoEtapa>& costos) {
                 if (matriz[0][i][j].tiempo == aux1) {
                     matriz[0][i][j].vehiculo = BMX;
                 } else {
-                    matriz[0][i][j].vehiculo = BUGGY;
+                    matriz[0][i][j].vehiculo = MOTO;
                 }
             } else {
                 int aux1 = costos[0].costo(BMX);
