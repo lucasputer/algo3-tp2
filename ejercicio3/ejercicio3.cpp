@@ -159,8 +159,8 @@ int main() {
 
     cout << costoTotal << " " <<  componentes.count() << " " << tuberiasConstruidas.size() << endl;
 
-    imprimo los pozos que tienen refineria
-    defino que un pozo tiene refineria si es la raiz de su componente
+    //imprimo los pozos que tienen refineria
+    //defino que un pozo tiene refineria si es la raiz de su componente
     for (int i = 0; i < n; i++){
         if(componentes.buscar(i) == i){
             cout << i + 1 << " ";
