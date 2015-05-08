@@ -16,15 +16,14 @@ void startTimer() {
 
 double endTimer() {
     auto finish = chrono::high_resolution_clock::now();
-    double tiempo = chrono::duration_cast<chrono::milliseconds>(finish-startTime).count();
+    double tiempo = chrono::duration_cast<chrono::nanoseconds>(finish-startTime).count();
     return tiempo;
 }
 
 // Implementacion
 int main() {
-    FILE* file = fopen("tiempos.txt","w+");
-    //fprintf(file, "n nanosegundos\n");
-    fprintf(file, "n km kb millisegundos\n");
+    FILE* file = fopen("datos1-ej1.dat","w+");
+    fprintf(file, "n km kb nanosegundos km*kb n*km*kb div-(km*kb) div-(n*km*kb)\n");
     srand(time(NULL));
 
     int n_max = 100;
@@ -63,7 +62,9 @@ int main() {
                 sum = sum + endTimer();
             }
             double prom = sum / double(muestras_por_km_kb);
-            fprintf(file, "%d %d %d %7.8f\n", n, km, kb, prom);
+            double aux1 = prom/double(km*kb);
+            double aux1 = prom/double(n*km*kb);
+            fprintf(file, "%d %d %d %7.8f %d %d %7.8f %7.8f\n", n, km, kb, prom, km*kb, n*km*kb, aux1, aux2);
         }
     }
 
